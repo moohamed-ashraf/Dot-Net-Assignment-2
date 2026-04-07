@@ -1,83 +1,151 @@
-# CourseForge API
+# 📘 CourseForge API — Course Management System
 
-CourseForge API is a clean ASP.NET Core Web API project for managing courses, instructors, students, and enrollments.
-It was designed to satisfy the assignment requirements for DTO validation, dependency injection, entity relationships,
-JWT authentication, role-based authorization, LINQ projection, `AsNoTracking()`, EF Core migrations, and Swagger.
+## 📌 Overview
 
-## Why this project fits the assignment
-- **One-to-one**: `Instructor` ↔ `InstructorProfile`
-- **One-to-many**: `Instructor` → `Courses`
-- **Many-to-many**: `Student` ↔ `Course` through `Enrollment`
-- **At least 3 services**: Auth, Student, Instructor, Course
-- **DTOs**: create, update, and read DTOs are used
-- **Validation**: DataAnnotations on DTOs
-- **Authentication**: JWT login endpoint
-- **Authorization**: role-based access using `Admin`, `Instructor`, and `User`
-- **Optimized queries**: `Select()` projections and `AsNoTracking()` on read-only queries
+CourseForge API is a RESTful backend system built using ASP.NET Core Web API for managing a university course system.  
+The system handles students, instructors, courses, and enrollments with secure authentication and role-based authorization.
 
-## Technologies used
-- **ASP.NET Core Web API**: framework for building REST APIs.
-- **Entity Framework Core**: ORM used for data access and relationships.
-- **SQLite**: lightweight database for simple local setup.
-- **JWT Bearer Authentication**: secures endpoints using tokens.
-- **Swagger / OpenAPI**: interactive API documentation and testing UI.
-- **LINQ**: optimized querying and DTO projection.
+This project demonstrates backend engineering concepts including Entity Framework Core, Dependency Injection, DTO validation, JWT authentication, and optimized LINQ queries.
 
-## Run the project
-```bash
-git clone <your-repository-url>
-cd CourseForge.Api
-dotnet restore
-dotnet ef database update
+---
+
+## 🎯 Features
+
+- JWT Authentication (Login system)
+- Role-Based Authorization (Admin, Instructor, User)
+- Course Management
+- Student Management
+- Instructor Management
+- Entity Relationships (1-1, 1-M, M-M)
+- DTO-based architecture
+- Request validation using Data Annotations
+- Optimized queries using LINQ (Select)
+- Performance optimization using AsNoTracking()
+- Swagger API documentation
+
+---
+
+## 🏗️ Technologies Used
+
+| Technology            | Description                 |
+| --------------------- | --------------------------- |
+| ASP.NET Core Web API  | Backend framework           |
+| Entity Framework Core | ORM for database            |
+| PostgreSQL            | Relational database         |
+| Npgsql                | PostgreSQL EF Core provider |
+| LINQ                  | Query optimization          |
+| JWT Authentication    | Secure login system         |
+| Swagger               | API testing & documentation |
+| Dependency Injection  | Clean architecture          |
+
+---
+
+## 🗄️ Database Design
+
+### Relationships Implemented:
+
+- One-to-One → Instructor ↔ InstructorProfile
+- One-to-Many → Instructor → Courses
+- Many-to-Many → Students ↔ Courses (via Enrollment)
+
+---
+
+## 🔐 Authentication & Authorization
+
+### Login Endpoint:
+
+POST /api/auth/login
+
+### Example Request:
+
+{
+"username": "admin",
+"password": "admin123"
+}
+
+### Usage:
+
+Authorization: Bearer YOUR_TOKEN
+
+---
+
+## 🧪 API Testing (Swagger)
+
+https://localhost:7230/swagger
+
+---
+
+## ⚙️ How to Run the Project
+
+### 1. Install prerequisites
+
+- .NET SDK (8 or higher)
+- PostgreSQL (v17 recommended)
+
+### 2. Create database in PostgreSQL
+
+Database name:
+assingment2_db
+
+### 3. Configure connection string
+
+In appsettings.json:
+
+"ConnectionStrings": {
+"DefaultConnection": "Host=localhost;Port=5432;Database=assingment2_db;Username=postgres;Password=YOUR_PASSWORD"
+}
+
+### 4. Run commands
+
+dotnet restore  
+dotnet ef database update  
 dotnet run
-```
 
-Swagger will open at:
-- `https://localhost:7230/swagger`
-- or `http://localhost:5230/swagger`
+---
 
-## Seeded login accounts
-- **Admin**: `admin / admin123`
-- **Instructor**: `instructor1 / Instructor123`
-- **User**: `student1 / Student123`
+## 📊 LINQ Optimization
 
-## Example API endpoints
-### Auth
-- `POST /api/Auth/login`
+- Used Select() to return DTOs instead of full entities
+- Used AsNoTracking() for read-only queries
 
-### Students
-- `GET /api/Students`
-- `GET /api/Students/{id}`
-- `POST /api/Students` (Admin)
-- `PUT /api/Students/{id}` (Admin)
-- `DELETE /api/Students/{id}` (Admin)
+---
 
-### Instructors
-- `GET /api/Instructors`
-- `GET /api/Instructors/{id}`
-- `POST /api/Instructors` (Admin)
-- `PUT /api/Instructors/{id}` (Admin)
-- `DELETE /api/Instructors/{id}` (Admin)
+## ✅ Validation
 
-### Courses
-- `GET /api/Courses`
-- `GET /api/Courses/{id}`
-- `POST /api/Courses` (Admin, Instructor)
-- `PUT /api/Courses/{id}` (Admin, Instructor)
-- `DELETE /api/Courses/{id}` (Admin)
-- `POST /api/Courses/enroll` (Admin, User)
+DTO validation using:
 
-## HTTP-only cookies and why they are common in industry
-HTTP-only cookies are commonly used because JavaScript cannot read them directly in the browser. That reduces the risk of token theft through XSS attacks. They also work well with secure, same-site cookie policies and fit browser-based authentication flows. In many real systems, teams choose HTTP-only cookies for web apps while still using bearer tokens for APIs and mobile clients.
+- Required
+- MaxLength
+- MinLength
+- EmailAddress
+- Range
 
-## Suggested screenshots for submission
-After running the API, take screenshots for:
-1. Swagger login request.
-2. Protected endpoint with Bearer token.
-3. Create student endpoint.
-4. Create course endpoint.
-5. Enroll student endpoint.
+Invalid requests return 400 Bad Request.
 
-## Notes
-- Passwords are plain text here only to keep the assignment simple. In a production project, always hash passwords.
-- If your instructor wants PostgreSQL or SQL Server instead of SQLite, only the EF Core provider and connection string need to change.
+---
+
+## 🔒 Why HTTP-Only Cookies Are Used in Industry
+
+HTTP-only cookies improve security by preventing JavaScript access, reducing XSS risks, and enabling safer session management.
+
+---
+
+## 📸 Screenshots Required
+
+- Swagger homepage
+- Login response
+- Authorization
+- Working endpoint
+
+---
+
+## 👨‍💻 Author
+
+Mohamed Ashraf
+
+---
+
+## 📝 Notes
+
+This project was updated to use PostgreSQL instead of SQLite.  
+New EF Core migrations were generated and applied successfully.
