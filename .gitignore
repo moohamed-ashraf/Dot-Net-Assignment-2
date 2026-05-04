@@ -1,0 +1,11 @@
+bin/
+obj/
+*.db
+client/node_modules/
+client/dist/
+# Local secrets — copy from appsettings.example.json
+appsettings.json
+.vs/
+
+# Accidental uploads in project root (move under screenshots/ if you want them tracked)
+/WhatsApp*.jpeg

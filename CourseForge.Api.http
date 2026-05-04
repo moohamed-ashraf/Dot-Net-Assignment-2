@@ -1,0 +1,106 @@
+# =============================================================================
+# Course Management API — manual tests (VS Code: REST Client extension)
+# =============================================================================
+# 1. Run: dotnet run
+# 2. Base URL: match launchSettings (HTTPS avoids redirect issues)
+# 3. Run requests top-to-bottom; tokens fill automatically where @name is used
+# =============================================================================
+
+@baseUrl = https://localhost:7231
+# If HTTPS certificate errors in REST Client, use HTTP instead:
+# @baseUrl = http://localhost:5231
+
+### --- Auth: Register new student (optional) ---
+POST {{baseUrl}}/api/Auth/register
+Content-Type: application/json
+
+{
+  "name": "Api Tester",
+  "email": "tester99@example.com",
+  "password": "password123",
+  "role": "Student"
+}
+
+### --- Auth: Login Admin (captures token as adminLogin) ---
+# @name adminLogin
+POST {{baseUrl}}/api/Auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@courseforge.com",
+  "password": "admin123"
+}
+
+### --- Auth: Login Instructor ---
+# @name instructorLogin
+POST {{baseUrl}}/api/Auth/login
+Content-Type: application/json
+
+{
+  "email": "mona@courseforge.com",
+  "password": "Instructor123"
+}
+
+### --- Auth: Login Student ---
+# @name studentLogin
+POST {{baseUrl}}/api/Auth/login
+Content-Type: application/json
+
+{
+  "email": "omar@student.com",
+  "password": "Student123"
+}
+
+### --- Courses: List all (Admin token) ---
+GET {{baseUrl}}/api/Courses
+Authorization: Bearer {{adminLogin.response.body.token}}
+
+### --- Courses: Get by id (use id from list; seeded course is usually 1) ---
+GET {{baseUrl}}/api/Courses/1
+Authorization: Bearer {{studentLogin.response.body.token}}
+
+### --- Courses: Create (Instructor or Admin only) ---
+# InstructorId must be a real User with role Instructor (seeded instructor is usually id 2)
+POST {{baseUrl}}/api/Courses
+Authorization: Bearer {{instructorLogin.response.body.token}}
+Content-Type: application/json
+
+{
+  "title": "REST Client Smoke Test",
+  "description": "Temporary course created from CourseForge.Api.http",
+  "instructorId": 2
+}
+
+### --- Courses: Update (Instructor or Admin) ---
+PUT {{baseUrl}}/api/Courses/1
+Authorization: Bearer {{adminLogin.response.body.token}}
+Content-Type: application/json
+
+{
+  "title": "Backend Engineering with ASP.NET Core",
+  "description": "Updated description via API test.",
+  "instructorId": 2
+}
+
+### --- Courses: Delete (Instructor or Admin) — optional; picks id 999 if you created extras ---
+# DELETE {{baseUrl}}/api/Courses/2
+# Authorization: Bearer {{adminLogin.response.body.token}}
+
+### --- Enrollments: List all (Admin or Instructor only) ---
+GET {{baseUrl}}/api/Enrollments
+Authorization: Bearer {{adminLogin.response.body.token}}
+
+### --- Enrollments: Create (Student or Admin) ---
+# userId = Student user id (seeded Omar is usually 3); courseId from GET /api/Courses (often 1)
+POST {{baseUrl}}/api/Enrollments
+Authorization: Bearer {{studentLogin.response.body.token}}
+Content-Type: application/json
+
+{
+  "userId": 3,
+  "courseId": 1
+}
+
+### --- Enrollments: Delete (Admin only) ---
+DELETE {{baseUrl}}/api/Enrollments/3/1
+Authorization: Bearer {{adminLogin.response.body.token}}
