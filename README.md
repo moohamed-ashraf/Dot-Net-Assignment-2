@@ -92,3 +92,17 @@ Add your final UI screenshots to `screenshots/` and include them in your submiss
 3. Login or register from frontend.
 4. Show courses list, create a course, edit a course.
 5. Show enrollments operations by role.
+
+## Push this folder to GitHub
+
+This project uses Git on the `main` branch. `appsettings.json` is not committed (use `appsettings.example.json` as a template).
+
+1. Create an empty repository on GitHub (no README) if you do not have one yet.
+2. In this folder, add the remote and push (replace with your repository URL):
+
+```bash
+git remote add origin https://github.com/USERNAME/REPO.git
+git push -u origin main
+```
+
+If `origin` already exists, use `git remote set-url origin https://github.com/USERNAME/REPO.git` then `git push -u origin main`.
