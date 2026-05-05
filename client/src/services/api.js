@@ -12,6 +12,25 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const status = error?.response?.status;
+    const url = error?.config?.url || '';
+    const isAuthRequest = url.includes('/api/Auth/login') || url.includes('/api/Auth/register');
+
+    if (status === 401 && !isAuthRequest) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
+    }
+
+    return Promise.reject(error);
+  },
+);
+
 function toMessage(error, fallback) {
   return (
     error?.response?.data?.message
@@ -67,6 +86,11 @@ export async function fetchEnrollments() {
   return data;
 }
 
+export async function fetchMyEnrollments() {
+  const { data } = await api.get('/api/Enrollments/mine');
+  return data;
+}
+
 export async function createEnrollment(dto) {
   const { data } = await api.post('/api/Enrollments', dto);
   return data;
@@ -74,6 +98,12 @@ export async function createEnrollment(dto) {
 
 export async function deleteEnrollment(userId, courseId) {
   await api.delete(`/api/Enrollments/${userId}/${courseId}`);
+}
+
+export async function fetchUsers(role) {
+  const params = role ? { role } : undefined;
+  const { data } = await api.get('/api/Auth/users', { params });
+  return data;
 }
 
 export function saveSession(auth) {

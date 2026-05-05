@@ -81,6 +81,22 @@ The Vite dev server proxies `/api` to `https://localhost:7231`.
 - `POST /api/Enrollments`
 - `DELETE /api/Enrollments/{userId}/{courseId}`
 
+## User roles and permissions
+
+### Student
+
+- Can: login/register, view courses, enroll in courses
+- Cannot: add/edit/delete courses, view all enrollments, delete enrollments
+
+### Instructor
+
+- Can: login/register, view courses, add/edit/delete courses, view all enrollments
+- Cannot: delete enrollments
+
+### Admin
+
+- Can: full control (login/register, manage courses, view all enrollments, delete enrollments)
+
 ## Screenshots
 
 Add your final UI screenshots to `screenshots/` and include them in your submission.

@@ -10,6 +10,9 @@ export default function HomePage() {
         <li>Create/update course records</li>
         <li>Manage enrollments by role</li>
       </ul>
+      <p className="hint">
+        Roles: Student can enroll only, Instructor manages courses + views enrollments, Admin has full control.
+      </p>
     </section>
   );
 }

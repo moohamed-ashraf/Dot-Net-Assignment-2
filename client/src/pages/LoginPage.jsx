@@ -4,8 +4,8 @@ import { login, saveSession } from '../services/api.js';
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('omar@student.com');
-  const [password, setPassword] = useState('Student123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 

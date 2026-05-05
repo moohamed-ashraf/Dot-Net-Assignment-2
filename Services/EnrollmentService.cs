@@ -31,6 +31,23 @@ public class EnrollmentService
             .ToListAsync();
     }
 
+    public async Task<List<EnrollmentReadDto>> GetByUserIdAsync(int userId)
+    {
+        return await _context.Enrollments
+            .AsNoTracking()
+            .Where(e => e.UserId == userId)
+            .Include(e => e.User)
+            .Include(e => e.Course)
+            .Select(e => new EnrollmentReadDto
+            {
+                UserId = e.UserId,
+                UserName = e.User != null ? e.User.Name : string.Empty,
+                CourseId = e.CourseId,
+                CourseTitle = e.Course != null ? e.Course.Title : string.Empty
+            })
+            .ToListAsync();
+    }
+
     public async Task<EnrollmentReadDto?> CreateAsync(EnrollmentCreateDto dto)
     {
         var student = await _context.Users

@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { clearSession, loadUser } from '../services/api.js';
+import { canAccessEnrollmentsPage, canManageCourses } from '../services/permissions.js';
 
 export default function Navbar() {
   const user = loadUser();
@@ -18,13 +19,13 @@ export default function Navbar() {
         {!isLoggedIn && <Link to="/login">Login</Link>}
         {!isLoggedIn && <Link to="/register">Register</Link>}
         {isLoggedIn && <Link to="/courses">Courses</Link>}
-        {isLoggedIn && <Link to="/courses/new">Add Course</Link>}
-        {isLoggedIn && <Link to="/enrollments">Enrollments</Link>}
+        {isLoggedIn && canManageCourses(user.role) && <Link to="/courses/new">Add Course</Link>}
+        {isLoggedIn && canAccessEnrollmentsPage(user.role) && <Link to="/enrollments">Enrollments</Link>}
       </div>
 
       {isLoggedIn && (
         <div className="nav-user">
-          <span>{user.name} ({user.role})</span>
+          <span>#{user.userId} {user.name} ({user.role})</span>
           <button type="button" className="secondary" onClick={logout}>Logout</button>
         </div>
       )}

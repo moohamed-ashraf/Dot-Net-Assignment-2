@@ -1,10 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { deleteCourse, fetchCourses, loadUser } from '../services/api.js';
-
-function canManageCourses(role) {
-  return role === 'Admin' || role === 'Instructor';
-}
+import { canManageCourses } from '../services/permissions.js';
 
 export default function CoursesPage() {
   const navigate = useNavigate();
@@ -68,9 +65,11 @@ export default function CoursesPage() {
                 <tr key={course.id}>
                   <td>{course.id}</td>
                   <td>{course.title}</td>
-                  <td>{course.instructorName}</td>
+                  <td>#{course.instructorId} {course.instructorName}</td>
                   <td className="actions">
-                    <Link to={`/courses/${course.id}`} className="small-link">View/Edit</Link>
+                    <Link to={`/courses/${course.id}`} className="small-link">
+                      {canManageCourses(user?.role) ? 'View/Edit' : 'View'}
+                    </Link>
                     {canManageCourses(user?.role) && (
                       <button type="button" className="small danger" onClick={() => handleDelete(course.id)}>
                         Delete

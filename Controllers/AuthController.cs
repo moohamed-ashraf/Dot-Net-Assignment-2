@@ -1,7 +1,9 @@
 using CourseForge.Api.DTOs.Auth;
+using CourseForge.Api.Data;
 using CourseForge.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace CourseForge.Api.Controllers;
 
@@ -10,10 +12,12 @@ namespace CourseForge.Api.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly AuthService _authService;
+    private readonly AppDbContext _db;
 
-    public AuthController(AuthService authService)
+    public AuthController(AuthService authService, AppDbContext db)
     {
         _authService = authService;
+        _db = db;
     }
 
     [AllowAnonymous]
@@ -42,5 +46,27 @@ public class AuthController : ControllerBase
             return Unauthorized(new { message = "Invalid email or password." });
 
         return Ok(response);
+    }
+
+    [Authorize(Roles = "Admin,Instructor")]
+    [HttpGet("users")]
+    public async Task<IActionResult> GetUsers([FromQuery] string? role = null)
+    {
+        var query = _db.Users.AsNoTracking().AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(role))
+            query = query.Where(u => u.Role == role);
+
+        var users = await query
+            .OrderBy(u => u.Id)
+            .Select(u => new UserLookupDto
+            {
+                Id = u.Id,
+                Name = u.Name,
+                Role = u.Role
+            })
+            .ToListAsync();
+
+        return Ok(users);
     }
 }

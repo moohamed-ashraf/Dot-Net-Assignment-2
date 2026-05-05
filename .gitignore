@@ -9,3 +9,4 @@ appsettings.json
 
 # Accidental uploads in project root (move under screenshots/ if you want them tracked)
 /WhatsApp*.jpeg
+/nul

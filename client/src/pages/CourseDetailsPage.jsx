@@ -1,10 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { fetchCourse, loadUser, updateCourse } from '../services/api.js';
-
-function canManageCourses(role) {
-  return role === 'Admin' || role === 'Instructor';
-}
+import { fetchCourse, fetchUsers, loadUser, updateCourse } from '../services/api.js';
+import { canManageCourses } from '../services/permissions.js';
 
 export default function CourseDetailsPage() {
   const { id } = useParams();
@@ -14,6 +11,7 @@ export default function CourseDetailsPage() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [instructorId, setInstructorId] = useState('');
+  const [instructors, setInstructors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -37,6 +35,19 @@ export default function CourseDetailsPage() {
     }
     loadCourse();
   }, [id]);
+
+  useEffect(() => {
+    async function loadInstructors() {
+      try {
+        const list = await fetchUsers('Instructor');
+        setInstructors(Array.isArray(list) ? list : []);
+      } catch {
+        setInstructors([]);
+      }
+    }
+
+    if (canManageCourses(user?.role)) loadInstructors();
+  }, [user?.role]);
 
   async function handleUpdate(event) {
     event.preventDefault();
@@ -87,7 +98,17 @@ export default function CourseDetailsPage() {
               </label>
               <label>
                 Instructor Id
-                <input type="number" min={1} value={instructorId} onChange={(e) => setInstructorId(e.target.value)} required />
+                {instructors.length > 0 ? (
+                  <select value={instructorId} onChange={(e) => setInstructorId(e.target.value)} required>
+                    {instructors.map((ins) => (
+                      <option key={ins.id} value={ins.id}>
+                        #{ins.id} - {ins.name}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input type="number" min={1} value={instructorId} onChange={(e) => setInstructorId(e.target.value)} required />
+                )}
               </label>
               {success && <p className="success">{success}</p>}
               <div className="btn-row">

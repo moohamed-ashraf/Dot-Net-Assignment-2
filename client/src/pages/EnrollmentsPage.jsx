@@ -1,35 +1,37 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   createEnrollment,
   deleteEnrollment,
   fetchCourses,
   fetchEnrollments,
+  fetchMyEnrollments,
+  fetchUsers,
   loadUser,
 } from '../services/api.js';
-
-function canListEnrollments(role) {
-  return role === 'Admin' || role === 'Instructor';
-}
-
-function canCreateEnrollment(role) {
-  return role === 'Admin' || role === 'Student';
-}
-
-function canDeleteEnrollment(role) {
-  return role === 'Admin';
-}
+import {
+  canCreateEnrollment,
+  canDeleteEnrollment,
+  canListEnrollments,
+} from '../services/permissions.js';
 
 export default function EnrollmentsPage() {
   const user = loadUser();
   const uid = Number(user?.userId);
   const [enrollments, setEnrollments] = useState([]);
   const [courses, setCourses] = useState([]);
+  const [students, setStudents] = useState([]);
   const [enrollCourseId, setEnrollCourseId] = useState('');
   const [enrollUserId, setEnrollUserId] = useState('');
   const [deleteUserId, setDeleteUserId] = useState('');
   const [deleteCourseId, setDeleteCourseId] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const availableCourses = useMemo(() => {
+    if (user?.role !== 'Student') return courses;
+    const enrolledCourseIds = new Set(enrollments.map((e) => e.courseId));
+    return courses.filter((course) => !enrolledCourseIds.has(course.id));
+  }, [courses, enrollments, user?.role]);
 
   async function loadPageData() {
     setError('');
@@ -39,9 +41,21 @@ export default function EnrollmentsPage() {
       const coursesList = Array.isArray(courseData) ? courseData : [];
       setCourses(coursesList);
 
+      if (user?.role === 'Admin') {
+        const studentData = await fetchUsers('Student');
+        const studentList = Array.isArray(studentData) ? studentData : [];
+        setStudents(studentList);
+        if (!enrollUserId && studentList.length > 0) {
+          setEnrollUserId(String(studentList[0].id));
+        }
+      }
+
       if (canListEnrollments(user?.role)) {
         const enrollmentData = await fetchEnrollments();
         setEnrollments(Array.isArray(enrollmentData) ? enrollmentData : []);
+      } else if (user?.role === 'Student') {
+        const mine = await fetchMyEnrollments();
+        setEnrollments(Array.isArray(mine) ? mine : []);
       }
       return { courses: coursesList };
     } catch (err) {
@@ -57,10 +71,17 @@ export default function EnrollmentsPage() {
   }, []);
 
   useEffect(() => {
-    if (user?.role === 'Student' && !enrollCourseId && courses.length > 0) {
-      setEnrollCourseId(String(courses[0].id));
+    if (user?.role === 'Student' && !enrollCourseId && availableCourses.length > 0) {
+      setEnrollCourseId(String(availableCourses[0].id));
     }
-  }, [courses, enrollCourseId, user?.role]);
+  }, [availableCourses, enrollCourseId, user?.role]);
+
+  useEffect(() => {
+    if (user?.role !== 'Admin') return;
+    if (!enrollUserId && students.length > 0) setEnrollUserId(String(students[0].id));
+    if (!deleteUserId && students.length > 0) setDeleteUserId(String(students[0].id));
+    if (!deleteCourseId && courses.length > 0) setDeleteCourseId(String(courses[0].id));
+  }, [students, courses, user?.role, enrollUserId, deleteUserId, deleteCourseId]);
 
   async function handleCreate(event) {
     event.preventDefault();
@@ -72,8 +93,14 @@ export default function EnrollmentsPage() {
         courseId: parseInt(enrollCourseId, 10),
       });
       const { courses: nextCourses } = await loadPageData();
-      if (user?.role === 'Admin') setEnrollUserId('');
-      if (Array.isArray(nextCourses) && nextCourses.length > 0) {
+      if (user?.role === 'Student') {
+        const mine = await fetchMyEnrollments();
+        const mineList = Array.isArray(mine) ? mine : [];
+        setEnrollments(mineList);
+        const mineIds = new Set(mineList.map((e) => e.courseId));
+        const nextAvailable = (Array.isArray(nextCourses) ? nextCourses : []).find((c) => !mineIds.has(c.id));
+        setEnrollCourseId(nextAvailable ? String(nextAvailable.id) : '');
+      } else if (Array.isArray(nextCourses) && nextCourses.length > 0) {
         setEnrollCourseId(String(nextCourses[0].id));
       } else {
         setEnrollCourseId('');
@@ -126,15 +153,34 @@ export default function EnrollmentsPage() {
           </table>
         </div>
       )}
+      {user?.role === 'Student' && enrollments.length > 0 && (
+        <div className="table-wrap">
+          <h3>My Enrollments</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Course</th>
+              </tr>
+            </thead>
+            <tbody>
+              {enrollments.map((item) => (
+                <tr key={`${item.userId}-${item.courseId}`}>
+                  <td>#{item.courseId} {item.courseTitle}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {canCreateEnrollment(user?.role) && (
         <details className="details-box" open>
-          <summary>Create Enrollment (POST /api/Enrollments)</summary>
+          <summary>{user?.role === 'Student' ? 'Choose Course and Enroll' : 'Create Enrollment (POST /api/Enrollments)'}</summary>
           <form onSubmit={handleCreate} className="form compact">
             <label>
               Course
               <select value={enrollCourseId} onChange={(e) => setEnrollCourseId(e.target.value)} required>
-                {courses.map((course) => (
+                {availableCourses.map((course) => (
                   <option key={course.id} value={course.id}>
                     {course.id} - {course.title}
                   </option>
@@ -144,10 +190,19 @@ export default function EnrollmentsPage() {
             {user?.role === 'Admin' && (
               <label>
                 Student User Id
-                <input type="number" min={1} value={enrollUserId} onChange={(e) => setEnrollUserId(e.target.value)} required />
+                <select value={enrollUserId} onChange={(e) => setEnrollUserId(e.target.value)} required>
+                  {students.map((student) => (
+                    <option key={student.id} value={student.id}>
+                      #{student.id} - {student.name}
+                    </option>
+                  ))}
+                </select>
               </label>
             )}
-            <button type="submit">Enroll</button>
+            {user?.role === 'Student' && availableCourses.length === 0 ? (
+              <p className="hint">You are already enrolled in all available courses.</p>
+            ) : null}
+            <button type="submit" disabled={user?.role === 'Student' && availableCourses.length === 0}>Enroll</button>
           </form>
         </details>
       )}
@@ -158,11 +213,23 @@ export default function EnrollmentsPage() {
           <form onSubmit={handleDelete} className="form compact">
             <label>
               User Id
-              <input type="number" min={1} value={deleteUserId} onChange={(e) => setDeleteUserId(e.target.value)} required />
+              <select value={deleteUserId} onChange={(e) => setDeleteUserId(e.target.value)} required>
+                {students.map((student) => (
+                  <option key={student.id} value={student.id}>
+                    #{student.id} - {student.name}
+                  </option>
+                ))}
+              </select>
             </label>
             <label>
               Course Id
-              <input type="number" min={1} value={deleteCourseId} onChange={(e) => setDeleteCourseId(e.target.value)} required />
+              <select value={deleteCourseId} onChange={(e) => setDeleteCourseId(e.target.value)} required>
+                {courses.map((course) => (
+                  <option key={course.id} value={course.id}>
+                    #{course.id} - {course.title}
+                  </option>
+                ))}
+              </select>
             </label>
             <button type="submit" className="danger">Remove Enrollment</button>
           </form>

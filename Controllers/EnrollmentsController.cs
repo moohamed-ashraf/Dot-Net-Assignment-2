@@ -2,6 +2,7 @@ using CourseForge.Api.DTOs.Enrollment;
 using CourseForge.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace CourseForge.Api.Controllers;
 
@@ -22,6 +23,18 @@ public class EnrollmentsController : ControllerBase
     public async Task<IActionResult> GetAll()
     {
         var enrollments = await _enrollmentService.GetAllAsync();
+        return Ok(enrollments);
+    }
+
+    [Authorize(Roles = "Student")]
+    [HttpGet("mine")]
+    public async Task<IActionResult> GetMine()
+    {
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!int.TryParse(userIdClaim, out var userId))
+            return Unauthorized(new { message = "Invalid token user id." });
+
+        var enrollments = await _enrollmentService.GetByUserIdAsync(userId);
         return Ok(enrollments);
     }
 

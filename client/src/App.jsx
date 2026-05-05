@@ -35,7 +35,7 @@ export default function App() {
         <Route
           path="/courses/new"
           element={(
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['Admin', 'Instructor']}>
               <CourseFormPage />
             </ProtectedRoute>
           )}
@@ -51,7 +51,7 @@ export default function App() {
         <Route
           path="/enrollments"
           element={(
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['Admin', 'Instructor', 'Student']}>
               <EnrollmentsPage />
             </ProtectedRoute>
           )}
