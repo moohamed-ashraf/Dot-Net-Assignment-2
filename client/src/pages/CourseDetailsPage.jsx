@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { fetchCourse, fetchUsers, loadUser, updateCourse } from '../services/api.js';
 import { canManageCourses } from '../services/permissions.js';
 
@@ -45,7 +45,6 @@ export default function CourseDetailsPage() {
         setInstructors([]);
       }
     }
-
     if (canManageCourses(user?.role)) loadInstructors();
   }, [user?.role]);
 
@@ -74,51 +73,74 @@ export default function CourseDetailsPage() {
   }
 
   return (
-    <section className="card">
-      <h2>Course Details (GET /api/Courses/{id})</h2>
-      {loading && <p className="hint">Loading...</p>}
-      {error && <p className="error">{error}</p>}
+    <>
+      <div className="page-header">
+        <h1>Course Details</h1>
+        <p>View and manage course information</p>
+      </div>
+
+      {error && <div className="alert alert-error">{error}</div>}
+
+      {loading && (
+        <div className="loading-spinner"><div className="spinner" /></div>
+      )}
 
       {course && (
-        <>
-          <p><strong>Current title:</strong> {course.title}</p>
-          <p className="desc">{course.description}</p>
-          <p className="hint">Instructor: {course.instructorName} (#{course.instructorId})</p>
+        <section className="card">
+          <div className="card-header">
+            <h2>{course.title}</h2>
+            <div className="btn-row">
+              <Link to={`/courses/${id}/assignments`} className="btn-sm" style={{ textDecoration: 'none' }}>
+                Assignments
+              </Link>
+              <button type="button" className="btn-sm" onClick={() => navigate('/courses')}>
+                Back
+              </button>
+            </div>
+          </div>
+
+          <p style={{ color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>{course.description}</p>
+          <p className="hint">
+            Instructor: <strong style={{ color: 'var(--text)' }}>{course.instructorName}</strong>
+          </p>
 
           {canManageCourses(user?.role) && (
-            <form onSubmit={handleUpdate} className="form compact">
-              <h3>Update Course (PUT /api/Courses/{id})</h3>
-              <label>
-                Title
-                <input value={title} onChange={(e) => setTitle(e.target.value)} required />
-              </label>
-              <label>
-                Description
-                <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} required />
-              </label>
-              <label>
-                Instructor Id
-                {instructors.length > 0 ? (
-                  <select value={instructorId} onChange={(e) => setInstructorId(e.target.value)} required>
-                    {instructors.map((ins) => (
-                      <option key={ins.id} value={ins.id}>
-                        #{ins.id} - {ins.name}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <input type="number" min={1} value={instructorId} onChange={(e) => setInstructorId(e.target.value)} required />
-                )}
-              </label>
-              {success && <p className="success">{success}</p>}
-              <div className="btn-row">
-                <button type="submit" disabled={saving}>{saving ? 'Updating...' : 'Update'}</button>
-                <button type="button" className="secondary" onClick={() => navigate('/courses')}>Back</button>
-              </div>
-            </form>
+            <>
+              <hr className="divider" />
+              <h3>Update Course</h3>
+              <form onSubmit={handleUpdate} className="form compact">
+                <label>
+                  Title
+                  <input value={title} onChange={(e) => setTitle(e.target.value)} required />
+                </label>
+                <label>
+                  Description
+                  <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} required />
+                </label>
+                <label>
+                  Instructor
+                  {instructors.length > 0 ? (
+                    <select value={instructorId} onChange={(e) => setInstructorId(e.target.value)} required>
+                      {instructors.map((ins) => (
+                        <option key={ins.id} value={ins.id}>
+                          #{ins.id} - {ins.name}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input type="number" min={1} value={instructorId} onChange={(e) => setInstructorId(e.target.value)} required />
+                  )}
+                </label>
+                {success && <div className="alert alert-success">{success}</div>}
+                <div className="btn-row">
+                  <button type="submit" disabled={saving}>{saving ? 'Saving...' : 'Save Changes'}</button>
+                  <button type="button" className="secondary" onClick={() => navigate('/courses')}>Cancel</button>
+                </div>
+              </form>
+            </>
           )}
-        </>
+        </section>
       )}
-    </section>
+    </>
   );
 }

@@ -11,4 +11,5 @@ public class User
     public InstructorProfile? InstructorProfile { get; set; }
     public ICollection<Course> CoursesTeaching { get; set; } = new List<Course>();
     public ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
+    public ICollection<Submission> Submissions { get; set; } = new List<Submission>();
 }

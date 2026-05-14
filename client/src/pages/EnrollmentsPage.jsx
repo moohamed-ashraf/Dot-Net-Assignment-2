@@ -124,72 +124,95 @@ export default function EnrollmentsPage() {
   }
 
   return (
-    <section className="card">
-      <div className="row-heading">
-        <h2>Enrollments</h2>
-        <button type="button" className="small" onClick={loadPageData} disabled={loading}>Refresh</button>
+    <>
+      <div className="page-header">
+        <h1>Enrollments</h1>
+        <p>{user?.role === 'Student' ? 'Manage your course enrollments' : 'View and manage student enrollments'}</p>
       </div>
 
-      {error && <p className="error">{error}</p>}
-      {loading && <p className="hint">Loading...</p>}
+      {error && <div className="alert alert-error">{error}</div>}
 
-      {canListEnrollments(user?.role) && enrollments.length > 0 && (
-        <div className="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>User</th>
-                <th>Course</th>
-              </tr>
-            </thead>
-            <tbody>
-              {enrollments.map((item) => (
-                <tr key={`${item.userId}-${item.courseId}`}>
-                  <td>#{item.userId} {item.userName}</td>
-                  <td>#{item.courseId} {item.courseTitle}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {/* Enrollment list */}
+      <section className="card">
+        <div className="card-header">
+          <h2>{user?.role === 'Student' ? 'My Enrollments' : 'All Enrollments'}</h2>
+          <button type="button" className="btn-sm" onClick={loadPageData} disabled={loading}>Refresh</button>
         </div>
-      )}
-      {user?.role === 'Student' && enrollments.length > 0 && (
-        <div className="table-wrap">
-          <h3>My Enrollments</h3>
-          <table>
-            <thead>
-              <tr>
-                <th>Course</th>
-              </tr>
-            </thead>
-            <tbody>
-              {enrollments.map((item) => (
-                <tr key={`${item.userId}-${item.courseId}`}>
-                  <td>#{item.courseId} {item.courseTitle}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
 
+        {loading && (
+          <div className="loading-spinner"><div className="spinner" /></div>
+        )}
+
+        {!loading && enrollments.length === 0 && (
+          <div className="empty-state">
+            <div className="empty-icon">&#128101;</div>
+            <h3>No enrollments yet</h3>
+            <p>{user?.role === 'Student' ? 'Enroll in a course below.' : 'No students enrolled yet.'}</p>
+          </div>
+        )}
+
+        {!loading && canListEnrollments(user?.role) && enrollments.length > 0 && (
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Course</th>
+                </tr>
+              </thead>
+              <tbody>
+                {enrollments.map((item) => (
+                  <tr key={`${item.userId}-${item.courseId}`}>
+                    <td>
+                      <span className="badge badge-primary" style={{ marginRight: '0.5rem' }}>#{item.userId}</span>
+                      {item.userName}
+                    </td>
+                    <td>{item.courseTitle}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {!loading && user?.role === 'Student' && enrollments.length > 0 && (
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Course</th>
+                </tr>
+              </thead>
+              <tbody>
+                {enrollments.map((item) => (
+                  <tr key={`${item.userId}-${item.courseId}`}>
+                    <td style={{ fontWeight: 600 }}>{item.courseTitle}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      {/* Enroll form */}
       {canCreateEnrollment(user?.role) && (
-        <details className="details-box" open>
-          <summary>{user?.role === 'Student' ? 'Choose Course and Enroll' : 'Create Enrollment (POST /api/Enrollments)'}</summary>
+        <section className="card">
+          <h2>{user?.role === 'Student' ? 'Enroll in a Course' : 'Create Enrollment'}</h2>
           <form onSubmit={handleCreate} className="form compact">
             <label>
               Course
               <select value={enrollCourseId} onChange={(e) => setEnrollCourseId(e.target.value)} required>
                 {availableCourses.map((course) => (
                   <option key={course.id} value={course.id}>
-                    {course.id} - {course.title}
+                    {course.title}
                   </option>
                 ))}
               </select>
             </label>
             {user?.role === 'Admin' && (
               <label>
-                Student User Id
+                Student
                 <select value={enrollUserId} onChange={(e) => setEnrollUserId(e.target.value)} required>
                   {students.map((student) => (
                     <option key={student.id} value={student.id}>
@@ -199,20 +222,26 @@ export default function EnrollmentsPage() {
                 </select>
               </label>
             )}
-            {user?.role === 'Student' && availableCourses.length === 0 ? (
-              <p className="hint">You are already enrolled in all available courses.</p>
-            ) : null}
-            <button type="submit" disabled={user?.role === 'Student' && availableCourses.length === 0}>Enroll</button>
+            {user?.role === 'Student' && availableCourses.length === 0 && (
+              <div className="alert alert-warning">You are already enrolled in all available courses.</div>
+            )}
+            <button
+              type="submit"
+              disabled={user?.role === 'Student' && availableCourses.length === 0}
+            >
+              Enroll
+            </button>
           </form>
-        </details>
+        </section>
       )}
 
+      {/* Delete enrollment (admin) */}
       {canDeleteEnrollment(user?.role) && (
-        <details className="details-box">
-          <summary>Delete Enrollment (DELETE /api/Enrollments/{'{userId}'}/{'{courseId}'})</summary>
+        <section className="card">
+          <h2>Remove Enrollment</h2>
           <form onSubmit={handleDelete} className="form compact">
             <label>
-              User Id
+              Student
               <select value={deleteUserId} onChange={(e) => setDeleteUserId(e.target.value)} required>
                 {students.map((student) => (
                   <option key={student.id} value={student.id}>
@@ -222,19 +251,19 @@ export default function EnrollmentsPage() {
               </select>
             </label>
             <label>
-              Course Id
+              Course
               <select value={deleteCourseId} onChange={(e) => setDeleteCourseId(e.target.value)} required>
                 {courses.map((course) => (
                   <option key={course.id} value={course.id}>
-                    #{course.id} - {course.title}
+                    {course.title}
                   </option>
                 ))}
               </select>
             </label>
-            <button type="submit" className="danger">Remove Enrollment</button>
+            <button type="submit" className="danger" style={{ alignSelf: 'flex-start' }}>Remove Enrollment</button>
           </form>
-        </details>
+        </section>
       )}
-    </section>
+    </>
   );
 }

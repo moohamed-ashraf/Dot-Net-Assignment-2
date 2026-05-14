@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { register } from '../services/api.js';
 
 export default function RegisterPage() {
@@ -30,33 +31,61 @@ export default function RegisterPage() {
   }
 
   return (
-    <section className="card">
-      <h2>Register</h2>
-      <form onSubmit={handleSubmit} className="form">
-        <label>
-          Name
-          <input value={name} onChange={(e) => setName(e.target.value)} required />
-        </label>
-        <label>
-          Email
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-        </label>
-        <label>
-          Password
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-        </label>
-        <label>
-          Role
-          <select value={role} onChange={(e) => setRole(e.target.value)}>
-            <option value="Student">Student</option>
-            <option value="Instructor">Instructor</option>
-            <option value="Admin">Admin</option>
-          </select>
-        </label>
-        {error && <p className="error">{error}</p>}
-        {message && <p className="success">{message}</p>}
-        <button type="submit" disabled={loading}>{loading ? 'Creating...' : 'Create account'}</button>
-      </form>
-    </section>
+    <div className="auth-page">
+      <section className="card auth-card">
+        <div className="auth-header">
+          <h2>Create Account</h2>
+          <p>Register to start using CourseForge</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="form">
+          <label>
+            Full Name
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="John Doe"
+              required
+            />
+          </label>
+          <label>
+            Email
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              required
+            />
+          </label>
+          <label>
+            Password
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Choose a strong password"
+              required
+            />
+          </label>
+          <label>
+            Role
+            <select value={role} onChange={(e) => setRole(e.target.value)}>
+              <option value="Student">Student</option>
+              <option value="Instructor">Instructor</option>
+            </select>
+          </label>
+          {error && <div className="alert alert-error">{error}</div>}
+          {message && <div className="alert alert-success">{message}</div>}
+          <button type="submit" disabled={loading}>
+            {loading ? 'Creating...' : 'Create Account'}
+          </button>
+        </form>
+
+        <div className="auth-footer">
+          Already have an account? <Link to="/login">Sign in</Link>
+        </div>
+      </section>
+    </div>
   );
 }

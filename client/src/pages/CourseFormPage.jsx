@@ -1,6 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
 import { createCourse, fetchUsers, loadUser } from '../services/api.js';
 import { canManageCourses } from '../services/permissions.js';
 
@@ -33,7 +32,6 @@ export default function CourseFormPage() {
         setInstructors([]);
       }
     }
-
     loadInstructors();
   }, [user?.role]);
 
@@ -62,40 +60,46 @@ export default function CourseFormPage() {
   }
 
   return (
-    <section className="card">
-      <h2>Create Course (POST /api/Courses)</h2>
-      <form onSubmit={handleSubmit} className="form">
-        <label>
-          Title
-          <input value={title} onChange={(e) => setTitle(e.target.value)} required />
-        </label>
-        <label>
-          Description
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} required />
-        </label>
+    <>
+      <div className="page-header">
+        <h1>Create Course</h1>
+        <p>Add a new course to the catalog</p>
+      </div>
 
-        {user?.role === 'Admin' && (
+      <section className="card" style={{ maxWidth: 560 }}>
+        <form onSubmit={handleSubmit} className="form">
           <label>
-            Instructor Id
-            <select value={instructorId} onChange={(e) => setInstructorId(e.target.value)} required>
-              {instructors.map((ins) => (
-                <option key={ins.id} value={ins.id}>
-                  #{ins.id} - {ins.name}
-                </option>
-              ))}
-            </select>
+            Title
+            <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Introduction to CS" required />
           </label>
-        )}
-        {user?.role === 'Instructor' && (
-          <p className="hint">You are creating this course as instructor user #{uid}.</p>
-        )}
+          <label>
+            Description
+            <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} placeholder="Course description..." required />
+          </label>
 
-        {error && <p className="error">{error}</p>}
-        <div className="btn-row">
-          <button type="submit" disabled={loading}>{loading ? 'Saving...' : 'Save Course'}</button>
-          <button type="button" className="secondary" onClick={() => navigate('/courses')}>Cancel</button>
-        </div>
-      </form>
-    </section>
+          {user?.role === 'Admin' && (
+            <label>
+              Instructor
+              <select value={instructorId} onChange={(e) => setInstructorId(e.target.value)} required>
+                {instructors.map((ins) => (
+                  <option key={ins.id} value={ins.id}>
+                    #{ins.id} - {ins.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+          {user?.role === 'Instructor' && (
+            <div className="alert alert-warning">You are creating this course as instructor #{uid}.</div>
+          )}
+
+          {error && <div className="alert alert-error">{error}</div>}
+          <div className="btn-row">
+            <button type="submit" disabled={loading}>{loading ? 'Saving...' : 'Create Course'}</button>
+            <button type="button" className="secondary" onClick={() => navigate('/courses')}>Cancel</button>
+          </div>
+        </form>
+      </section>
+    </>
   );
 }

@@ -100,6 +100,53 @@ export async function deleteEnrollment(userId, courseId) {
   await api.delete(`/api/Enrollments/${userId}/${courseId}`);
 }
 
+// ── Assignments ──
+
+export async function fetchAssignments(courseId) {
+  const { data } = await api.get(`/api/Courses/${courseId}/assignments`);
+  return data;
+}
+
+export async function createAssignment(courseId, dto) {
+  try {
+    const { data } = await api.post(`/api/Courses/${courseId}/assignments`, dto);
+    return data;
+  } catch (error) {
+    throw new Error(toMessage(error, 'Failed to create assignment'));
+  }
+}
+
+export async function fetchSubmissions(courseId, assignmentId) {
+  const { data } = await api.get(`/api/Courses/${courseId}/assignments/${assignmentId}/submissions`);
+  return data;
+}
+
+export async function fetchMySubmission(courseId, assignmentId) {
+  const { data } = await api.get(`/api/Courses/${courseId}/assignments/${assignmentId}/submissions/mine`);
+  return data;
+}
+
+export async function createSubmission(courseId, assignmentId, dto) {
+  try {
+    const { data } = await api.post(`/api/Courses/${courseId}/assignments/${assignmentId}/submissions`, dto);
+    return data;
+  } catch (error) {
+    throw new Error(toMessage(error, 'Failed to submit'));
+  }
+}
+
+export async function gradeSubmission(courseId, assignmentId, submissionId, grade) {
+  try {
+    const { data } = await api.put(
+      `/api/Courses/${courseId}/assignments/${assignmentId}/submissions/${submissionId}/grade`,
+      { grade },
+    );
+    return data;
+  } catch (error) {
+    throw new Error(toMessage(error, 'Failed to grade submission'));
+  }
+}
+
 export async function fetchUsers(role) {
   const params = role ? { role } : undefined;
   const { data } = await api.get('/api/Auth/users', { params });

@@ -11,6 +11,8 @@ public class AppDbContext : DbContext
     public DbSet<InstructorProfile> InstructorProfiles => Set<InstructorProfile>();
     public DbSet<Course> Courses => Set<Course>();
     public DbSet<Enrollment> Enrollments => Set<Enrollment>();
+    public DbSet<Assignment> Assignments => Set<Assignment>();
+    public DbSet<Submission> Submissions => Set<Submission>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -61,5 +63,28 @@ public class AppDbContext : DbContext
             .WithMany(c => c.Enrollments)
             .HasForeignKey(e => e.CourseId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Assignment>(e =>
+        {
+            e.Property(a => a.Title).HasMaxLength(200);
+            e.Property(a => a.Description).HasMaxLength(4000);
+            e.HasOne(a => a.Course)
+                .WithMany(c => c.Assignments)
+                .HasForeignKey(a => a.CourseId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Submission>(e =>
+        {
+            e.Property(s => s.Content).HasMaxLength(8000);
+            e.HasOne(s => s.Assignment)
+                .WithMany(a => a.Submissions)
+                .HasForeignKey(s => s.AssignmentId)
+                .OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(s => s.Student)
+                .WithMany(u => u.Submissions)
+                .HasForeignKey(s => s.StudentId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
     }
 }

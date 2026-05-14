@@ -10,4 +10,5 @@ public class Course
     public int InstructorId { get; set; }
     public User? Instructor { get; set; }
     public ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
+    public ICollection<Assignment> Assignments { get; set; } = new List<Assignment>();
 }

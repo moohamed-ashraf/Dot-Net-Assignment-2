@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { login, saveSession } from '../services/api.js';
 
 export default function LoginPage() {
@@ -27,23 +27,44 @@ export default function LoginPage() {
   }
 
   return (
-    <section className="card">
-      <h2>Login</h2>
-      <p className="hint">
-        Seeded users: <strong>admin@courseforge.com</strong>, <strong>mona@courseforge.com</strong>, <strong>omar@student.com</strong>
-      </p>
-      <form onSubmit={handleSubmit} className="form">
-        <label>
-          Email
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-        </label>
-        <label>
-          Password
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-        </label>
-        {error && <p className="error">{error}</p>}
-        <button type="submit" disabled={loading}>{loading ? 'Signing in...' : 'Sign in'}</button>
-      </form>
-    </section>
+    <div className="auth-page">
+      <section className="card auth-card">
+        <div className="auth-header">
+          <h2>Sign In</h2>
+          <p>Enter your credentials to access your account</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="form">
+          <label>
+            Email
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              required
+            />
+          </label>
+          <label>
+            Password
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Your password"
+              required
+            />
+          </label>
+          {error && <div className="alert alert-error">{error}</div>}
+          <button type="submit" disabled={loading}>
+            {loading ? 'Signing in...' : 'Sign In'}
+          </button>
+        </form>
+
+        <div className="auth-footer">
+          Don&apos;t have an account? <Link to="/register">Create one</Link>
+        </div>
+      </section>
+    </div>
   );
 }
